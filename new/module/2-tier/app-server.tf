@@ -1,10 +1,7 @@
 resource "aws_instance" "app-server" {
-    ami = "ami-0efdf839508ec2995"
-    instance_type = "t3.micro"
-    tags = {
-        Name = "alpha-us-west-2-app-server"
-        Description = "Alpha AppServer"
-    }
+    ami = var.ami
+    instance_type = var.instance_type
+    tags = var.instance_tags
     key_name = aws_key_pair.app-key-pair.id
     
     # configure app vpc
@@ -14,15 +11,15 @@ resource "aws_instance" "app-server" {
     # attach app sg
     security_groups = [ aws_security_group.app-sg.id ]
     # public ip address will be assigned
-    associate_public_ip_address = true
+    associate_public_ip_address = var.assign_public_ip
 }
 
 resource "aws_key_pair" "app-key-pair"{
-    key_name = "alpha-us-west-2-key"
+    key_name = var.app_key
     public_key = trimspace(tls_private_key.this.public_key_openssh)
 }
 
 resource "tls_private_key" "this" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
+  algorithm = var.app_key_tls_algorithm
+  rsa_bits  = var.app_key_tls_rsa
 }

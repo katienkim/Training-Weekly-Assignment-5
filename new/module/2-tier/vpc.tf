@@ -1,41 +1,36 @@
-# list of available az's
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-
 # create VPC
 resource "aws_vpc" "vpc" {
-    cidr_block = "10.0.0.0/16"
+    cidr_block = var.local_vpc_cidr
     tags = {
-      Name = "alpha-us-west-2-vpc"
+      Name = var.vpc_name
     }
-    enable_dns_hostnames = true
+    enable_dns_hostnames = var.enable_dns_host
 }
 
 # create IGW attach to vpc
 resource "aws_internet_gateway" "igw" {
     vpc_id = aws_vpc.vpc.id
     tags = {
-      Name = "alpha-us-west-2-igw"
+      Name = var.igw_name
     }
 }
  
 # create private and public SUBNET
 resource "aws_subnet" "private" {
-    count = 2
+    count = 4
     vpc_id = aws_vpc.vpc.id
-    cidr_block = "10.0.${count.index+2}.0/24"
-    availability_zone = data.aws_availability_zones.available.names[count.index]
+    cidr_block = "10.0.${count.index+5}.0/24"
+    availability_zone = count.index > 2 ? data.aws_availability_zones.available.names[1] : data.aws_availability_zones.available.names[0]
     tags = {
       Name = "alpha-priv-sub-${count.index+1}"
     }
 }
 
 resource "aws_subnet" "public" {
-    count = 2
+    count = 4
     vpc_id = aws_vpc.vpc.id
-    cidr_block = "10.0.${count.index}.0/24"
-    availability_zone = data.aws_availability_zones.available.names[count.index]
+    cidr_block = "10.0.${count.index+1}.0/24"
+    availability_zone = count.index > 2 ? data.aws_availability_zones.available.names[1] : data.aws_availability_zones.available.names[0]
     tags = {
       Name = "alpha-pub-sub-${count.index+1}"
     }
@@ -43,42 +38,42 @@ resource "aws_subnet" "public" {
 
 # create SUBNET GROUP
 resource "aws_db_subnet_group" "default" {
-  name       = "alpha-db-subnet-group"
+  name       = var.db_subnet_group_name
   subnet_ids = [aws_subnet.private[0].id, aws_subnet.private[1].id]
 }
 
 # create app and db SECURITY GROUP
 resource "aws_security_group" "app-sg" {
-    name = "alpha-us-west-2-app-sg"
+    name = var.app_sg_name
     vpc_id = aws_vpc.vpc.id
 }
 
 resource "aws_security_group" "db-sg" {
-    name = "alpha-us-west-2-db-sg"
+    name = var.db_sg_name
     vpc_id = aws_vpc.vpc.id
 }
 
 # egress and ingress rules for security group
 resource "aws_vpc_security_group_ingress_rule" "sg-ingress" {
   security_group_id = aws_security_group.app-sg.id
-  cidr_ipv4         = "0.0.0.0/0"
-  from_port         = 80
-  ip_protocol       = "tcp"
-  to_port           = 80
+  cidr_ipv4         = var.app_ingress_cidr
+  from_port         = var.app_ingress_port
+  ip_protocol       = var.app_ingress_protocol
+  to_port           = var.app_ingress_port
 }
 
 resource "aws_vpc_security_group_egress_rule" "sg-egress" {
   security_group_id = aws_security_group.app-sg.id
-  cidr_ipv4         = "0.0.0.0/0"
-  ip_protocol       = "-1" # semantically equivalent to all ports
+  cidr_ipv4         = var.app_egress_cidr
+  ip_protocol       = var.app_egress_protocol
 }
 
 resource "aws_vpc_security_group_ingress_rule" "sg-db-ingress" {
   security_group_id = aws_security_group.db-sg.id
-  cidr_ipv4         = aws_vpc.vpc.cidr_block
-  from_port         = 5432
-  ip_protocol       = "tcp"
-  to_port           = 5432
+  cidr_ipv4         = var.db_ingress_cidr
+  from_port         = var.db_ingress_port
+  ip_protocol       = var.db_ingress_protocol
+  to_port           = var.db_ingress_port
 }
 
 # ROUTE TABLES
@@ -86,11 +81,10 @@ resource "aws_route_table" "private" {
   vpc_id = aws_vpc.vpc.id
   
   route {
-    cidr_block = "10.0.0.0/16"
-    gateway_id = "local"
+    cidr_block = var.local_vpc_cidr 
   }
   tags = {
-    Name = "alpha-us-west-2-priv-rtb"
+    Name = var.priv_rtb_name
   }
 }
 
@@ -104,8 +98,7 @@ resource "aws_route_table" "public" {
   vpc_id = aws_vpc.vpc.id
   
   route {
-    cidr_block = "10.0.0.0/16"
-    gateway_id = "local"
+    cidr_block = var.local_vpc_cidr
   }
 
   route {
@@ -113,7 +106,7 @@ resource "aws_route_table" "public" {
     gateway_id = aws_internet_gateway.igw.id
   }
   tags = {
-    Name = "alpha-us-west-2-pub-rtb"
+    Name = var.public_rtb_name
   }
 }
 
