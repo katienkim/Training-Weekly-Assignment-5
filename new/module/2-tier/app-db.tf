@@ -2,6 +2,7 @@ resource "aws_db_instance" "alpha-db" {
     identifier = var.db_name
     engine = var.engine
     instance_class = var.instance_class
+    
     # kms
     kms_key_id = aws_kms_key.alpha-kms.arn
     # storage
@@ -18,5 +19,19 @@ resource "aws_db_instance" "alpha-db" {
 }
 
 resource "aws_kms_key" "alpha-kms" {
-    policy = var.policy
+    policy = jsonencode({
+        "Id": "key-consolepolicy-3",
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+            "Sid": "Enable IAM User Permissions",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::637423504015:root"
+            },
+            "Action": "kms:*",
+            "Resource": "*"
+            }
+        ]
+    })
 }

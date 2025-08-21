@@ -19,8 +19,8 @@ resource "aws_internet_gateway" "igw" {
 resource "aws_subnet" "private" {
     count = 4
     vpc_id = aws_vpc.vpc.id
-    cidr_block = "10.0.${count.index+5}.0/24"
-    availability_zone = count.index > 2 ? data.aws_availability_zones.available.names[1] : data.aws_availability_zones.available.names[0]
+    cidr_block = "10.0.${count.index+4}.0/24"
+    availability_zone = count.index % 2 == 0 ? data.aws_availability_zones.available.names[1] : data.aws_availability_zones.available.names[0]
     tags = {
       Name = "alpha-priv-sub-${count.index+1}"
     }
@@ -29,8 +29,8 @@ resource "aws_subnet" "private" {
 resource "aws_subnet" "public" {
     count = 4
     vpc_id = aws_vpc.vpc.id
-    cidr_block = "10.0.${count.index+1}.0/24"
-    availability_zone = count.index > 2 ? data.aws_availability_zones.available.names[1] : data.aws_availability_zones.available.names[0]
+    cidr_block = "10.0.${count.index}.0/24"
+    availability_zone = count.index % 2 == 0 ? data.aws_availability_zones.available.names[1] : data.aws_availability_zones.available.names[0]
     tags = {
       Name = "alpha-pub-sub-${count.index+1}"
     }
@@ -82,6 +82,7 @@ resource "aws_route_table" "private" {
   
   route {
     cidr_block = var.local_vpc_cidr 
+    gateway_id = "local"
   }
   tags = {
     Name = var.priv_rtb_name
@@ -99,6 +100,7 @@ resource "aws_route_table" "public" {
   
   route {
     cidr_block = var.local_vpc_cidr
+    gateway_id = "local"
   }
 
   route {
