@@ -12,7 +12,7 @@ resource "aws_db_instance" "alpha-db" {
 
     # connect to vpc
     vpc_security_group_ids = [aws_security_group.db-sg.id]
-
+    manage_master_user_password = true
     username = var.engine
     db_subnet_group_name = aws_db_subnet_group.default.name
     skip_final_snapshot = var.skip_final_snapshot

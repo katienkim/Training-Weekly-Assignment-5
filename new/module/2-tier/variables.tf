@@ -47,26 +47,6 @@ variable "skip_final_snapshot" {
   default = true
 }
 
-# variable "policy" {
-#   type = string
-#   description = "JSON policy for KMS key for RDS database"
-#   default = jsonencode({
-#         "Id": "key-consolepolicy-3",
-#         "Version": "2012-10-17",
-#         "Statement": [
-#             {
-#             "Sid": "Enable IAM User Permissions",
-#             "Effect": "Allow",
-#             "Principal": {
-#                 "AWS": "arn:aws:iam::637423504015:root"
-#             },
-#             "Action": "kms:*",
-#             "Resource": "*"
-#             }
-#         ]
-#     })
-# }
-
 # SERVER VARIABLES
 variable "ami" {
   type = string
