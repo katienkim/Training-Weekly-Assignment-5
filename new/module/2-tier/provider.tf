@@ -9,6 +9,11 @@ terraform {
 
 # Configure the AWS Provider
 provider "aws" {
-  region = "us-east-1"
+  region = var.deploy_region
   profile = "default"
+}
+
+# list of available az's
+data "aws_availability_zones" "available" {
+  state = "available"
 }

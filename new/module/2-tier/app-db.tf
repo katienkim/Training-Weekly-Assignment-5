@@ -1,26 +1,24 @@
 resource "aws_db_instance" "alpha-db" {
-    identifier = "alpha-us-east-1-postgres-rds"
-    engine = "postgres"
-    instance_class = "db.t4g.micro"
+    identifier = var.db_name
+    engine = var.engine
+    instance_class = var.instance_class
+    
     # kms
     kms_key_id = aws_kms_key.alpha-kms.arn
     # storage
-    allocated_storage = 20
-    storage_type = "gp3"
-    storage_encrypted = true
+    allocated_storage = var.allocated_storage
+    storage_type = var.storage_type
+    storage_encrypted = var.storage_encrypted
 
     # connect to vpc
     vpc_security_group_ids = [aws_security_group.db-sg.id]
-
-    username = "postgres"
     manage_master_user_password = true
+    username = var.engine
     db_subnet_group_name = aws_db_subnet_group.default.name
-    final_snapshot_identifier = "alpha-us-east-1-db-backup"
-    skip_final_snapshot = true
+    skip_final_snapshot = var.skip_final_snapshot
 }
 
 resource "aws_kms_key" "alpha-kms" {
-    enable_key_rotation = true
     policy = jsonencode({
         "Id": "key-consolepolicy-3",
         "Version": "2012-10-17",
