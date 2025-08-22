@@ -1,3 +1,4 @@
+# --- Configure providers for this terraform project ---
 terraform {
   required_providers {
     aws = {
@@ -13,7 +14,7 @@ provider "aws" {
   profile = "default"
 }
 
-# list of available az's
+# List of available az's (called to define subnets)
 data "aws_availability_zones" "available" {
   state = "available"
 }

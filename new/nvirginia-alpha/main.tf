@@ -1,3 +1,4 @@
+# --- Uses "two-tier" module with variables defined in this directory ---
 module "two-tier" {
   source = "../module/2-tier"
 
